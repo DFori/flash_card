@@ -5,59 +5,58 @@ BACKGROUND_COLOR = "#B1DDC6"
 timer = None
 language = "French"
 card = None
+to_learn = None
 window = Tk()
 window.title("Flashy")
 window.config(height=526, width=800, padx=50, pady=50, bg=BACKGROUND_COLOR)
 
-data = pandas.read_csv("french_words.csv")
-to_learn = data.to_dict(orient="records")
+try:
+    data = pandas.read_csv("data/words_to_learn.csv")
+except FileNotFoundError:
+    original_data = pandas.read_csv("data/french_words.csv")
+    to_learn = original_data.to_dict(orient="records")
+else:
+    to_learn = data.to_dict(orient="records")
 
 
 def flip():
     global language
     global card
     language = "English"
-    card_front.itemconfig(card_title, text="English")
+    card_front.itemconfig(card_title, text="English", fill="white")
     card_front.itemconfig(image, image=back_logo)
     card_front.itemconfig(card_word, text=card[language])
-    card_front.itemconfig(card_title, fill="white")
     card_front.itemconfig(card_word, fill="white")
 
 
 def is_known():
     global card
     to_learn.remove(card)
+    new_data = pandas.DataFrame(to_learn)
+    new_data.to_csv("data/words_to_learn.csv", index=False)
     next_card()
 
 
 def wrong():
-    global timer
-    global language
-    global card
+    global timer, language, card, flip_timer
+    window.after_cancel(flip_timer)
     language = "French"
-    card_front.itemconfig(card_title, text="French")
-    card_front.itemconfig(card_word, text=card[language])
+    card_front.itemconfig(card_title, text="French", fill="black")
+    card_front.itemconfig(card_word, text=card[language], fill="black")
     card_front.itemconfig(image, image=front_logo)
-    card_front.itemconfig(card_word, fill="black")
-    card_front.itemconfig(card_title, fill="black")
-    timer = window.after(5000, flip)
+    flip_timer = window.after(4000, flip)
 
 def next_card():
-    global timer
-    global language
-    global card
+    global timer, language, card, flip_timer
+    window.after_cancel(flip_timer)
     language = "French"
     card = random.choice(to_learn)
-    card_front.itemconfig(card_title, text="French")
-    card_front.itemconfig(card_word, text=card[language])
+    card_front.itemconfig(card_title, text="French", fill="black")
+    card_front.itemconfig(card_word, text=card[language], fill="black")
     card_front.itemconfig(image, image=front_logo)
-    card_front.itemconfig(card_word, fill="black")
-    card_front.itemconfig(card_title, fill="black")
-    timer = window.after(5000, flip)
+    flip_timer = window.after(4000, flip)
 
-
-
-
+flip_timer = window.after(4000, func=flip)
 
 front_logo = PhotoImage(file="./images/card_front.png")
 back_logo = PhotoImage(file="./images/card_back.png")
